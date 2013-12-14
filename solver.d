@@ -10,7 +10,8 @@ void main()
 	immutable decrease_increase = 40;
 	immutable board_size = 10;
 
-	char[board_size][board_size] board;
+	alias char[board_size][board_size] Board;
+	Board board;
 	auto f = File("test.txt", "r");
 	int i = 0;
 	foreach ( row; f.byLine() )
@@ -19,7 +20,7 @@ void main()
 	}
 
 	// Pretty print
-	void print_board( char[board_size][board_size] board )
+	void print_board( Board board )
 	{
 		foreach ( row; board )
 			writeln( row );
@@ -29,7 +30,7 @@ void main()
 	print_board( board );
 
 	// Solve function
-	int solve( char[board_size][board_size] board, int points )
+	int solve( Board board, int points )
 	{
 		return 0;
 	}
