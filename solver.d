@@ -24,10 +24,29 @@ void main()
 	{
 		foreach ( row; board )
 			writeln( row );
+		writeln( ' ' );
 	}
 
 	// See initial position
 	print_board( board );
+
+	// Move function
+	int move( ref Board board, int count, int x, int y )
+	{
+		int check_x, check_y;
+		char color = board[x][y];
+		board[x][y] = ' ';
+		for ( int i = 0; i < 4; i++ )
+		{
+			check_x = i % 2 ? x : x + i - 1;
+			check_y = i % 2 ? y + i - 2 : y;
+			if ( check_x >= 0 && check_x < 10
+					&& check_y >= 0 && check_y < 10
+					&& board[check_x][check_y] == color )
+				count = move( board, count, check_x, check_y ) + 1;
+		}
+		return count;
+	}
 
 	// Solve function
 	int solve( Board board, int points )
@@ -35,6 +54,11 @@ void main()
 		return 0;
 	}
 
+	// Test move function
+	int count = move( board, 1, 1, 0 );
+	print_board( board );
+	writeln( count );
+	
 	// Solve board
 	int points = solve( board, 0 );
 	writeln( points );
