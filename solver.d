@@ -40,8 +40,8 @@ void main()
 		{
 			check_x = i % 2 ? x : x + i - 1;
 			check_y = i % 2 ? y + i - 2 : y;
-			if ( check_x >= 0 && check_x < 10
-					&& check_y >= 0 && check_y < 10
+			if ( check_x >= 0 && check_x < board_size
+					&& check_y >= 0 && check_y < board_size
 					&& board[check_x][check_y] == color )
 				count = remove( board, count, check_x, check_y ) + 1;
 		}
