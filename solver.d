@@ -30,7 +30,7 @@ void main()
 	// See initial position
 	print_board( board );
 
-	// Remove function
+	// Remove function blasts a chunk of blocks
 	int remove( ref Board board, int count, int x, int y )
 	{
 		int check_x, check_y;
@@ -48,14 +48,35 @@ void main()
 		return count;
 	}
 
-	// Solve function
+	// Gravity function pulls blocks down
+	void gravity( ref Board board )
+	{
+		// j and i are reversed to indicate iterating over columns
+		for ( int j = 0; j < board_size; j++ )
+		{
+			// and then rows, ignoring the top row
+			for ( int i = 1; i < board_size; i++ )
+			{
+				if ( board[i][j] == ' ' )
+				{
+					for ( int k = i; k > 0; k-- )
+						board[k][j] = board[k-1][j];
+					board[0][j] = ' ';
+				}
+			}
+		}
+	}
+
+	// Solve function finds best moves
 	int solve( Board board, int points )
 	{
 		return 0;
 	}
 
-	// Test remove function
+	// Test remove + gravity function
 	int count = remove( board, 1, 1, 0 );
+	print_board( board );
+	gravity( board );
 	print_board( board );
 	writeln( count );
 	
