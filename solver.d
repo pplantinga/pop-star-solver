@@ -70,24 +70,18 @@ void main()
 
 	// Score function scores one blast
 	int score( int count )
-	in { assert( count >= 2 ); }
-	body
 	{
-		if ( count == MIN_BLOCKS )
-			return MIN_BLOCKS_SCORE;
-		else
-			return score( count - 1 ) + SCORE_INCREASE_START
-				+ SCORE_INCREASE_INCREASE * (count - MIN_BLOCKS - 1);
+		int n = count - MIN_BLOCKS;
+		return MIN_BLOCKS_SCORE + SCORE_INCREASE_START * n
+			+ SCORE_INCREASE_INCREASE * n * (n - 1) / 2;
 	}			
 
 	// Score function that scores blocks left over
-	int endscore( int count ) {
-		if ( count == 0 )
-			return END_CLEAR_SCORE;
-		else
-			return endscore( count - 1 ) <= 0 ? 0
-				: endscore( count - 1 ) - END_DECREASE_START
-				- END_DECREASE_INCREASE * ( count - 1 );
+	int endscore( int count )
+	{
+		int score = END_CLEAR_SCORE - END_DECREASE_START * count
+			- END_DECREASE_INCREASE * count * ( count - 1 ) / 2;
+		return score < 0 ? 0 : score;
 	}
 
 	// Count remaining squares at end
