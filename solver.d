@@ -70,7 +70,35 @@ void main()
 	// Solve function finds best moves
 	int solve( Board board, int points )
 	{
-		return 0;
+		Board testboard;
+		int count = 0;
+		int val = 0;
+		int bestVal = 0;
+		bool end = true;
+
+		// Try every move
+		for ( int i = 0; i < board_size; i++ )
+		{
+			for ( int j = 0; j < board_size; j++ )
+			{
+				testboard = board.dup;
+				count = remove( testboard, 0, i, j );
+				// points += score( count );
+
+				// If it's a legal move
+				if ( count > 1 )
+				{
+					end = false;
+					// Try subsequent moves
+					val = solve( testboard, points );
+					bestVal = bestVal > val ? bestVal : val;
+				}
+			}
+		}
+		//if ( end )
+		//	return endscore( board );
+		//else
+			return bestVal;
 	}
 
 	// Test remove + gravity function
