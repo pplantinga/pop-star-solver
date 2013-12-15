@@ -102,13 +102,18 @@ void main()
 	}
 
 	// Solve function finds best moves
-	int solve( Board board, int points )
+	int solve( Board board, int points, int depth )
 	{
+		if ( depth == 0 )
+			return points + endscore( count_remaining( board ) );
+
 		Board testboard;
 		int count = 0;
 		int val = 0;
 		int bestVal = 0;
 		bool end = true;
+		bool already = false;
+		Board[] moves;
 
 		// Try every move
 		for ( int i = 0; i < BOARD_SIZE; i++ )
@@ -117,6 +122,7 @@ void main()
 			{
 				if ( board[i][j] == ' ' )
 					continue;
+
 				testboard = board.dup;
 				count = remove( testboard, 0, i, j );
 				
@@ -124,18 +130,31 @@ void main()
 				if ( count > 1 )
 				{
 					gravity( testboard );
+					already = false;
+
+					// and we haven't seen it yet
+					foreach ( move; moves )
+					{
+						if ( testboard == move )
+							already = true;
+					}
+
+					if ( already )
+						continue;
+
+					moves ~= testboard;
 					points += score( count );
 					end = false;
 
 					// Try subsequent moves
-					val = solve( testboard, points );
+					val = solve( testboard, points, depth - 1 );
 					bestVal = bestVal > val ? bestVal : val;
 				}
 			}
 		}
 
 		if ( end )
-			return endscore( count_remaining( board ) );
+			return points + endscore( count_remaining( board ) );
 		else
 			return bestVal;
 	}
@@ -151,6 +170,6 @@ void main()
 	writeln( count_remaining( board ) );
 	*/
 	// Solve board
-	int points = solve( board, 0 );
+	int points = solve( board, 0, 5 );
 	writeln( points );
 }
