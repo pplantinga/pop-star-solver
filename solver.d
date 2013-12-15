@@ -115,15 +115,18 @@ void main()
 		{
 			for ( int j = 0; j < BOARD_SIZE; j++ )
 			{
+				if ( board[i][j] == ' ' )
+					continue;
 				testboard = board.dup;
 				count = remove( testboard, 0, i, j );
-				gravity( testboard );
-				points += score( count );
-
+				
 				// If it's a legal move
 				if ( count > 1 )
 				{
+					gravity( testboard );
+					points += score( count );
 					end = false;
+
 					// Try subsequent moves
 					val = solve( testboard, points );
 					bestVal = bestVal > val ? bestVal : val;
@@ -138,7 +141,7 @@ void main()
 	}
 
 	// Test functions
-	int count = remove( board, 1, 1, 0 );
+	/*int count = remove( board, 1, 1, 0 );
 	print_board( board );
 	gravity( board );
 	print_board( board );
@@ -146,7 +149,7 @@ void main()
 	writeln( score( count ) );
 	writeln( endscore( count ) );
 	writeln( count_remaining( board ) );
-	
+	*/
 	// Solve board
 	int points = solve( board, 0 );
 	writeln( points );
