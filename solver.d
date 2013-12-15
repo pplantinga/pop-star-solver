@@ -30,8 +30,8 @@ void main()
 	// See initial position
 	print_board( board );
 
-	// Move function
-	int move( ref Board board, int count, int x, int y )
+	// Remove function
+	int remove( ref Board board, int count, int x, int y )
 	{
 		int check_x, check_y;
 		char color = board[x][y];
@@ -43,7 +43,7 @@ void main()
 			if ( check_x >= 0 && check_x < 10
 					&& check_y >= 0 && check_y < 10
 					&& board[check_x][check_y] == color )
-				count = move( board, count, check_x, check_y ) + 1;
+				count = remove( board, count, check_x, check_y ) + 1;
 		}
 		return count;
 	}
@@ -54,8 +54,8 @@ void main()
 		return 0;
 	}
 
-	// Test move function
-	int count = move( board, 1, 1, 0 );
+	// Test remove function
+	int count = remove( board, 1, 1, 0 );
 	print_board( board );
 	writeln( count );
 	
