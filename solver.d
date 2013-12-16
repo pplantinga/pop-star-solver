@@ -31,22 +31,38 @@ void main()
 	// See initial position
 	print_board( board );
 
-	// Remove function blasts a chunk of blocks
-	int remove( ref Board board, int count, int x, int y )
+	// See if array contains a value
+	bool contains( int[] array, int val )
+	{
+		foreach ( num; array )
+			if ( val == num )
+				return true;
+		return false;
+	}
+
+	// Find_region function finds a chunk of blocks
+	void find_region( Board board, ref int[] region, int x, int y )
 	{
 		int check_x, check_y;
 		char color = board[x][y];
-		board[x][y] = ' ';
+		region ~= [10 * x + y];
 		for ( int i = 0; i < 4; i++ )
 		{
 			check_x = i % 2 ? x : x + i - 1;
 			check_y = i % 2 ? y + i - 2 : y;
 			if ( check_x >= 0 && check_x < BOARD_SIZE
 					&& check_y >= 0 && check_y < BOARD_SIZE
-					&& board[check_x][check_y] == color )
-				count = remove( board, count, check_x, check_y ) + 1;
+					&& board[check_x][check_y] == color
+					&& !contains( region, 10 * check_x + check_y ) )
+				find_region( board, region, check_x, check_y );
 		}
-		return count;
+	}
+
+	// removes a region from the board
+	void remove( ref Board board, int[] region )
+	{
+		foreach ( block; region )
+			board[block / 10][block % 10] = ' ';
 	}
 
 	// Gravity function pulls blocks down
@@ -99,71 +115,70 @@ void main()
 	int solve( Board board, int points, int depth )
 	{
 		if ( depth == 0 )
-			return points + endscore( count_remaining( board ) );
+			return points;
 
 		Board testboard;
-		int count = 0;
+		int[] region;
 		int val = 0;
 		int bestVal = 0;
+		int bestMove = 0;
 		bool end = true;
-		bool already = false;
-		Board[] moves;
+		int[] already;
 
 		// Try every move
 		for ( int i = 0; i < BOARD_SIZE; i++ )
 		{
 			for ( int j = 0; j < BOARD_SIZE; j++ )
 			{
-				if ( board[i][j] == ' ' )
+				if ( board[i][j] == ' ' || contains( already, 10 * i + j ) )
 					continue;
 
-				testboard = board.dup;
-				count = remove( testboard, 0, i, j );
+				region = null;
+				find_region( board, region, i, j );
 				
 				// If it's a legal move
-				if ( count > 1 )
+				if ( region.length > 1 )
 				{
+					already ~= region;
+
+					testboard = board.dup;
+					remove( board, region );
 					gravity( testboard );
-					already = false;
 
-					// and we haven't seen it yet
-					foreach ( move; moves )
-					{
-						if ( testboard == move )
-							already = true;
-					}
-
-					if ( already )
-						continue;
-
-					moves ~= testboard;
-					points += score( count );
+					points += score( region.length );
 					end = false;
 
 					// Try subsequent moves
 					val = solve( testboard, points, depth - 1 );
-					bestVal = bestVal > val ? bestVal : val;
+					if ( val > bestVal )
+					{
+						bestVal = val;
+						bestMove = region[0];
+					}
 				}
 			}
 		}
 
 		if ( end )
 			return points + endscore( count_remaining( board ) );
+		else if ( depth == 6 )
+			return bestMove;
 		else
 			return bestVal;
 	}
 
 	// Test functions
-	/*int count = remove( board, 1, 1, 0 );
-	print_board( board );
+	/*int[] region;
+	find_region( board, region, 1, 0 );
+	remove( board, region );
 	gravity( board );
 	print_board( board );
-	writeln( count );
-	writeln( score( count ) );
-	writeln( endscore( count ) );
+	writeln( region );
+	writeln( score( region.length ) );
+	writeln( endscore( region.length ) );
 	writeln( count_remaining( board ) );
 	*/
 	// Solve board
-	int points = solve( board, 0, 5 );
+	int points = solve( board, 0, 6 );
 	writeln( points );
 }
