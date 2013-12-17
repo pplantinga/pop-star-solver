@@ -180,6 +180,14 @@ void main()
 	writeln( count_remaining( board ) );
 	*/
 	// Solve board
-	int points = solve( board, 0, 6 );
-	writeln( points );
+	int move = solve( board, 0, 6 );
+	writefln( "x is %s and y is %s", move / 100, move % 100 );
+
+	// print board with pieces removed
+	int[] region;
+	find_region( board, region, move / 100, move % 100 );
+	remove( board, region );
+	gravity( board );
+	print_board( board );
+	writeln( score( region.length ) );
 }
