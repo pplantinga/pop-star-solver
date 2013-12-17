@@ -9,9 +9,10 @@ void main()
 	immutable END_CLEAR_SCORE = 2000;
 	immutable END_DECREASE_START = 20;
 	immutable END_DECREASE_INCREASE = 40;
-	immutable BOARD_SIZE = 10;
+	immutable BOARD_HEIGHT = 10;
+	immutable BOARD_WIDTH = 10;
 
-	alias char[BOARD_SIZE][BOARD_SIZE] Board;
+	alias char[BOARD_WIDTH][BOARD_HEIGHT] Board;
 	Board board;
 	auto f = File("test.txt", "r");
 	int i = 0;
@@ -45,15 +46,15 @@ void main()
 	{
 		int check_x, check_y;
 		char color = board[x][y];
-		region ~= [10 * x + y];
+		region ~= [100 * x + y];
 		for ( int i = 0; i < 4; i++ )
 		{
 			check_x = i % 2 ? x : x + i - 1;
 			check_y = i % 2 ? y + i - 2 : y;
-			if ( check_x >= 0 && check_x < BOARD_SIZE
-					&& check_y >= 0 && check_y < BOARD_SIZE
+			if ( check_x >= 0 && check_x < BOARD_HEIGHT
+					&& check_y >= 0 && check_y < BOARD_WIDTH
 					&& board[check_x][check_y] == color
-					&& !contains( region, 10 * check_x + check_y ) )
+					&& !contains( region, 100 * check_x + check_y ) )
 				find_region( board, region, check_x, check_y );
 		}
 	}
@@ -62,17 +63,17 @@ void main()
 	void remove( ref Board board, int[] region )
 	{
 		foreach ( block; region )
-			board[block / 10][block % 10] = ' ';
+			board[block / 100][block % 100] = ' ';
 	}
 
 	// Gravity function pulls blocks down
 	void gravity( ref Board board )
 	{
 		// j and i are reversed to indicate iterating over columns
-		for ( int j = 0; j < BOARD_SIZE; j++ )
+		for ( int j = 0; j < BOARD_WIDTH; j++ )
 		{
 			// and then rows, ignoring the top row
-			for ( int i = 1; i < BOARD_SIZE; i++ )
+			for ( int i = 1; i < BOARD_HEIGHT; i++ )
 			{
 				if ( board[i][j] == ' ' )
 				{
@@ -126,11 +127,11 @@ void main()
 		int[] already;
 
 		// Try every move
-		for ( int i = 0; i < BOARD_SIZE; i++ )
+		for ( int i = 0; i < BOARD_HEIGHT; i++ )
 		{
-			for ( int j = 0; j < BOARD_SIZE; j++ )
+			for ( int j = 0; j < BOARD_WIDTH; j++ )
 			{
-				if ( board[i][j] == ' ' || contains( already, 10 * i + j ) )
+				if ( board[i][j] == ' ' || contains( already, 100 * i + j ) )
 					continue;
 
 				region = null;
