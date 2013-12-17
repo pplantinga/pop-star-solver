@@ -10,7 +10,8 @@ void main()
 	immutable END_DECREASE_START = 20;
 	immutable END_DECREASE_INCREASE = 40;
 	immutable BOARD_HEIGHT = 10;
-	immutable BOARD_WIDTH = 10;
+	immutable BOARD_WIDTH = 12;
+	immutable DEPTH = 5;
 
 	alias char[BOARD_WIDTH][BOARD_HEIGHT] Board;
 	Board board;
@@ -112,6 +113,28 @@ void main()
 		return count;
 	}
 
+	// Count blastable squares
+	int blastable( Board board )
+	{
+		int length = 0;
+		int[] region;
+		for ( int i = 0; i < BOARD_HEIGHT; i++ )
+		{
+			for ( int j = 0; j < BOARD_WIDTH; j++ )
+			{
+				if ( !contains( region, i * 100 + j ) )
+				{
+					find_region( board, region, i, j );
+					if ( region.length - length == 1 )
+						region.length -= 1;
+					else
+						length = region.length;
+				}
+			}
+		}
+		return region.length;
+	}
+
 	// Solve function finds best moves
 	int solve( Board board, int points, int depth )
 	{
@@ -146,7 +169,10 @@ void main()
 					remove( board, region );
 					gravity( testboard );
 
-					points += score( region.length );
+					// Using actual scoring leads to short-sighted strategies
+					//points += score( region.length );
+					points = blastable( board );
+					
 					end = false;
 
 					// Try subsequent moves
@@ -162,7 +188,7 @@ void main()
 
 		if ( end )
 			return points + endscore( count_remaining( board ) );
-		else if ( depth == 6 )
+		else if ( depth == DEPTH )
 			return bestMove;
 		else
 			return bestVal;
@@ -180,7 +206,7 @@ void main()
 	writeln( count_remaining( board ) );
 	*/
 	// Solve board
-	int move = solve( board, 0, 6 );
+	int move = solve( board, 0, DEPTH );
 	writefln( "x is %s and y is %s", move / 100, move % 100 );
 
 	// print board with pieces removed
