@@ -11,7 +11,7 @@ void main()
 	immutable END_DECREASE_INCREASE = 40;
 	immutable BOARD_HEIGHT = 10;
 	immutable BOARD_WIDTH = 12;
-	immutable DEPTH = 5;
+	immutable DEPTH = 3;
 
 	alias char[BOARD_WIDTH][BOARD_HEIGHT] Board;
 	Board board;
@@ -42,24 +42,48 @@ void main()
 		return false;
 	}
 
-	// Find_region function finds a chunk of blocks
-	void find_region( Board board, ref int[] region, int x, int y )
+	bool is_on_board( int pos, bool dimension )
 	{
-		if ( board[x][y] == ' ' )
+		if ( dimension )
+			return pos >= 0 && pos < BOARD_WIDTH;
+		else
+			return pos >= 0 && pos < BOARD_HEIGHT;
+	}
+	
+	// Find legal squares around a spot
+	int[] find_surrounding( int here )
+	{
+		int[] surrounding = [ here - 1, here - 100, here + 1, here + 100 ];
+		int[] legal;
+
+		// Iterate over surrounding squares
+		foreach ( square; surrounding )
+		{
+			// Check if it is on the board
+			if ( is_on_board( square / 100, false )
+					&& is_on_board( square % 100, true ) )
+				legal ~= square;
+		}
+		return legal;
+	}
+
+	// Find_region function finds a chunk of blocks
+	void find_region( Board board, ref int[] region, int here )
+	{
+		if ( board[here / 100][here % 100] == ' ' )
 			return;
 
-		int check_x, check_y;
-		char color = board[x][y];
-		region ~= [100 * x + y];
-		for ( int i = 0; i < 4; i++ )
+		// Append this square to the region
+		region ~= [here];
+
+		// Iterate over surrounding squares
+		int[] surrounding = find_surrounding( here );
+		foreach ( square; surrounding )
 		{
-			check_x = i % 2 ? x : x + i - 1;
-			check_y = i % 2 ? y + i - 2 : y;
-			if ( check_x >= 0 && check_x < BOARD_HEIGHT
-					&& check_y >= 0 && check_y < BOARD_WIDTH
-					&& board[check_x][check_y] == color
-					&& !contains( region, 100 * check_x + check_y ) )
-				find_region( board, region, check_x, check_y );
+			// If we're the same and not found already
+			if ( board[square / 100][square % 100] == board[here / 100][here % 100]
+					&& !contains( region, square ) )
+				find_region( board, region, square );
 		}
 	}
 
@@ -119,23 +143,32 @@ void main()
 	// Count blastable squares
 	int blastable( Board board )
 	{
-		int length = 0;
-		int[] region;
+		int count = 0;
+		int[] surrounding;
+
+		// Iterate over board
 		for ( int i = 0; i < BOARD_HEIGHT; i++ )
 		{
 			for ( int j = 0; j < BOARD_WIDTH; j++ )
 			{
-				if ( !contains( region, i * 100 + j ) )
+				if ( board[i][j] == ' ' )
+					continue;
+				
+				surrounding = find_surrounding( i * 100 + j );
+
+				// Iterate over surrounding squares
+				foreach ( square; surrounding )
 				{
-					find_region( board, region, i, j );
-					if ( region.length - length == 1 )
-						region.length -= 1;
-					else
-						length = region.length;
+					// If we have at least one neighbor that's the same
+					if ( board[square / 100][square % 100] == board[i][j] )
+					{
+						count++;
+						break;
+					}
 				}
 			}
 		}
-		return region.length;
+		return count;
 	}
 
 	// Solve function finds best moves
@@ -147,8 +180,9 @@ void main()
 		Board testboard;
 		int[] region;
 		int val = 0;
-		int bestVal = 0;
+		int bestVal = -100;
 		int bestMove = 0;
+		int square = 0;
 		bool end = true;
 		int[] already;
 
@@ -157,11 +191,13 @@ void main()
 		{
 			for ( int j = 0; j < BOARD_WIDTH; j++ )
 			{
-				if ( board[i][j] == ' ' || contains( already, 100 * i + j ) )
+				square = 100 * i + j;
+
+				if ( board[i][j] == ' ' || contains( already, square ) )
 					continue;
 
 				region = null;
-				find_region( board, region, i, j );
+				find_region( board, region, square );
 				
 				// If it's a legal move
 				if ( region.length > 1 )
@@ -169,12 +205,12 @@ void main()
 					already ~= region;
 
 					testboard = board.dup;
-					remove( board, region );
+					remove( testboard, region );
 					gravity( testboard );
 
 					// Using actual scoring leads to short-sighted strategies
 					//points += score( region.length );
-					points = blastable( board );
+					points = blastable( testboard );
 					
 					end = false;
 
@@ -199,7 +235,7 @@ void main()
 
 	// Test functions
 	/*int[] region;
-	find_region( board, region, 1, 0 );
+	find_region( board, region, 100 );
 	remove( board, region );
 	gravity( board );
 	print_board( board );
@@ -207,22 +243,23 @@ void main()
 	writeln( score( region.length ) );
 	writeln( endscore( region.length ) );
 	writeln( count_remaining( board ) );
-	writeln( blastable( board ) );
 	*/
+	writeln( blastable( board ) );
 
 	// Solve board
-	int move = 1;
+	int move = solve( board, -1, DEPTH );
 	int[] region;
-	while ( move != 0 )
+	while ( move != -1 )
 	{
-		move = solve( board, 0, DEPTH );
-		writefln( "x is %s and y is %s", move / 100, move % 100 );
+		//writefln( "x is %s and y is %s", move / 100, move % 100 );
 	
 		// print board with pieces removed
 		region = null;
-		find_region( board, region, move / 100, move % 100 );
+		find_region( board, region, move );
 		remove( board, region );
-		gravity( board );
 		print_board( board );
+		gravity( board );
+
+		move = solve( board, -1, DEPTH );
 	}
 }
