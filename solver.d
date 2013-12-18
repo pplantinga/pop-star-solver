@@ -45,6 +45,9 @@ void main()
 	// Find_region function finds a chunk of blocks
 	void find_region( Board board, ref int[] region, int x, int y )
 	{
+		if ( board[x][y] == ' ' )
+			return;
+
 		int check_x, check_y;
 		char color = board[x][y];
 		region ~= [100 * x + y];
