@@ -207,16 +207,22 @@ void main()
 	writeln( score( region.length ) );
 	writeln( endscore( region.length ) );
 	writeln( count_remaining( board ) );
+	writeln( blastable( board ) );
 	*/
-	// Solve board
-	int move = solve( board, 0, DEPTH );
-	writefln( "x is %s and y is %s", move / 100, move % 100 );
 
-	// print board with pieces removed
+	// Solve board
+	int move = 1;
 	int[] region;
-	find_region( board, region, move / 100, move % 100 );
-	remove( board, region );
-	gravity( board );
-	print_board( board );
-	writeln( score( region.length ) );
+	while ( move != 0 )
+	{
+		move = solve( board, 0, DEPTH );
+		writefln( "x is %s and y is %s", move / 100, move % 100 );
+	
+		// print board with pieces removed
+		region = null;
+		find_region( board, region, move / 100, move % 100 );
+		remove( board, region );
+		gravity( board );
+		print_board( board );
+	}
 }
