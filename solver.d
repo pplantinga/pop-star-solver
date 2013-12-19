@@ -113,6 +113,36 @@ void main()
 		}
 	}
 
+	// Remove empty columns
+	void collapse( ref Board board )
+	{
+		int count = 0;
+		char[] slice;
+		for ( int i = 0; i < BOARD_WIDTH; i++ )
+		{
+			if ( board[$-1][i] == ' ' )
+			{
+				count++;
+			}
+			else if ( count != 0 )
+			{
+				// Mind the gap
+				for ( int j = 0; j < BOARD_HEIGHT; j++ )
+				{
+					for ( int k = i - count; k < BOARD_WIDTH; k++ )
+					{
+						if ( k < BOARD_WIDTH - count )
+							board[j][k] = board[j][k + count];
+						else
+							board[j][k] = ' ';
+					}
+				}
+				i -= count;
+				count = 0;
+			}
+		}
+	}
+
 	// Score function scores one blast
 	int score( int count )
 	{
@@ -207,6 +237,7 @@ void main()
 					testboard = board.dup;
 					remove( testboard, region );
 					gravity( testboard );
+					collapse( testboard );
 
 					// Using actual scoring leads to short-sighted strategies
 					//points += score( region.length );
@@ -233,19 +264,6 @@ void main()
 			return bestVal;
 	}
 
-	// Test functions
-	/*int[] region;
-	find_region( board, region, 100 );
-	remove( board, region );
-	gravity( board );
-	print_board( board );
-	writeln( region );
-	writeln( score( region.length ) );
-	writeln( endscore( region.length ) );
-	writeln( count_remaining( board ) );
-	*/
-	writeln( blastable( board ) );
-
 	// Solve board
 	int move = solve( board, -1, DEPTH );
 	int[] region;
@@ -259,6 +277,7 @@ void main()
 		remove( board, region );
 		print_board( board );
 		gravity( board );
+		collapse( board );
 
 		move = solve( board, -1, DEPTH );
 	}
