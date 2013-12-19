@@ -241,7 +241,7 @@ void main()
 
 					// Using actual scoring leads to short-sighted strategies
 					//points += score( region.length );
-					points = blastable( testboard );
+					points += 10 * blastable( testboard ) + score( region.length );
 					
 					end = false;
 
@@ -267,6 +267,7 @@ void main()
 	// Solve board
 	int move = solve( board, -1, DEPTH );
 	int[] region;
+	int points;
 	while ( move != -1 )
 	{
 		//writefln( "x is %s and y is %s", move / 100, move % 100 );
@@ -274,6 +275,7 @@ void main()
 		// print board with pieces removed
 		region = null;
 		find_region( board, region, move );
+		points += score( region.length );
 		remove( board, region );
 		print_board( board );
 		gravity( board );
@@ -281,4 +283,7 @@ void main()
 
 		move = solve( board, -1, DEPTH );
 	}
+
+	points += endscore( count_remaining( board ) );
+	writeln( "You get ", points, " points!" );
 }
