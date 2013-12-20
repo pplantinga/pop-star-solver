@@ -211,7 +211,7 @@ void main()
 		int[] region;
 		int val = 0;
 		int bestVal = -100;
-		int bestMove = 0;
+		int bestMove = -1;
 		int square = 0;
 		bool end = true;
 		int[] already;
@@ -256,16 +256,16 @@ void main()
 			}
 		}
 
-		if ( end )
-			return points + endscore( count_remaining( board ) );
-		else if ( depth == DEPTH )
+		if ( depth == DEPTH )
 			return bestMove;
+		else if ( end )
+			return points + endscore( count_remaining( board ) );
 		else
 			return bestVal;
 	}
 
 	// Solve board
-	int move = solve( board, -1, DEPTH );
+	int move = solve( board, 0, DEPTH );
 	int[] region;
 	int points;
 	while ( move != -1 )
@@ -281,7 +281,7 @@ void main()
 		gravity( board );
 		collapse( board );
 
-		move = solve( board, -1, DEPTH );
+		move = solve( board, 0, DEPTH );
 	}
 
 	points += endscore( count_remaining( board ) );
