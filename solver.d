@@ -1,4 +1,5 @@
 import std.stdio;
+import std.datetime;
 
 void main()
 {
@@ -11,7 +12,7 @@ void main()
 	immutable END_DECREASE_INCREASE = 40;
 	immutable BOARD_HEIGHT = 10;
 	immutable BOARD_WIDTH = 12;
-	immutable DEPTH = 3;
+	immutable TIMELIMIT = 5;
 
 	alias char[BOARD_WIDTH][BOARD_HEIGHT] Board;
 	Board board;
@@ -202,9 +203,9 @@ void main()
 	}
 
 	// Solve function finds best moves
-	int solve( Board board, int points, int depth )
+	int solve( Board board, int points, int depth, int maxdepth, StopWatch sw )
 	{
-		if ( depth == 0 )
+		if ( depth == 0 || sw.peek().seconds > TIMELIMIT )
 			return points;
 
 		Board testboard;
@@ -246,7 +247,7 @@ void main()
 					end = false;
 
 					// Try subsequent moves
-					val = solve( testboard, points, depth - 1 );
+					val = solve( testboard, points, depth - 1, maxdepth, sw );
 					if ( val > bestVal )
 					{
 						bestVal = val;
@@ -256,7 +257,7 @@ void main()
 			}
 		}
 
-		if ( depth == DEPTH )
+		if ( depth == maxdepth )
 			return bestMove;
 		else if ( end )
 			return points + endscore( count_remaining( board ) );
@@ -265,7 +266,9 @@ void main()
 	}
 
 	// Solve board
-	int move = solve( board, 0, DEPTH );
+	StopWatch sw;
+	int move = solve( board, 0, 1, 1, sw );
+	int temp = move;
 	int[] region;
 	int points;
 	while ( move != -1 )
@@ -281,7 +284,15 @@ void main()
 		gravity( board );
 		collapse( board );
 
-		move = solve( board, 0, DEPTH );
+		sw.reset();
+		sw.start();
+		for ( int depth = 0; sw.peek().seconds < TIMELIMIT; depth++ )
+		{
+			move = temp;
+			temp = solve( board, 0, depth, depth, sw );
+			if ( sw.peek().seconds > TIMELIMIT )
+				writeln( depth );
+		}
 	}
 
 	points += endscore( count_remaining( board ) );
