@@ -1,4 +1,5 @@
 import std.datetime;
+import std.stdio;
 
 class Board
 {
@@ -15,12 +16,17 @@ class Board
 
 	this( string file )
 	{
-		auto f = File( file, 'r' );
+		auto f = File( file, "r" );
 		int i = 0;
 		foreach ( row; f.byLine() )
 		{
 			my_board[i++] = row;
 		}
+	}
+
+	this( Board board )
+	{
+		my_board = board.my_board.dup;
 	}
 
 	// Pretty print
@@ -56,6 +62,14 @@ class Board
 		return legal;
 	}
 
+	bool find( int[] haystack, int needle )
+	{
+		foreach ( straw; haystack )
+			if ( straw == needle )
+				return true;
+		return false;
+	}
+
 	// Find_region function finds a chunk of blocks
 	public void find_region( ref int[] region, int here )
 	{
@@ -70,8 +84,8 @@ class Board
 		foreach ( square; surrounding )
 		{
 			// If we're the same and not found already
-			if ( board[square / 100][square % 100] == board[here / 100][here % 100]
-					&& !region.find(square) )
+			if ( my_board[square / 100][square % 100] == my_board[here / 100][here % 100]
+					&& !find( region, square) )
 				find_region( region, square );
 		}
 	}
@@ -92,11 +106,11 @@ class Board
 			// and then rows, ignoring the top row
 			for ( int i = 1; i < BOARD_HEIGHT; i++ )
 			{
-				if ( board[i][j] == ' ' )
+				if ( my_board[i][j] == ' ' )
 				{
 					for ( int k = i; k > 0; k-- )
-						board[k][j] = board[k-1][j];
-					board[0][j] = ' ';
+						my_board[k][j] = my_board[k-1][j];
+					my_board[0][j] = ' ';
 				}
 			}
 		}
@@ -109,7 +123,7 @@ class Board
 		char[] slice;
 		for ( int i = 0; i < BOARD_WIDTH; i++ )
 		{
-			if ( board[$-1][i] == ' ' )
+			if ( my_board[$-1][i] == ' ' )
 			{
 				count++;
 			}
@@ -191,9 +205,9 @@ class Board
 	}
 
 	// Solve function finds best moves
-	int solve( int points, int depth, int maxdepth, StopWatch sw )
+	int solve( int points, int depth, int maxdepth, StopWatch sw, int limit )
 	{
-		if ( depth == 0 || sw.peek().seconds > TIMELIMIT )
+		if ( depth == 0 || sw.peek().seconds > limit )
 			return points;
 
 		Board testboard;
@@ -212,18 +226,18 @@ class Board
 			{
 				square = 100 * i + j;
 
-				if ( board.my_board[i][j] == ' ' || already.find( square ) )
+				if ( my_board[i][j] == ' ' || find( already, square ) )
 					continue;
 
 				region = null;
-				board.find_region( region, square );
+				find_region( region, square );
 				
 				// If it's a legal move
 				if ( region.length > 1 )
 				{
 					already ~= region;
 
-					testboard = board.dup;
+					testboard = new Board( this );
 					testboard.remove( region );
 					testboard.gravity();
 					testboard.collapse();
@@ -235,7 +249,7 @@ class Board
 					end = false;
 
 					// Try subsequent moves
-					val = testboard.solve( points, depth - 1, maxdepth, sw );
+					val = testboard.solve( points, depth - 1, maxdepth, sw, limit );
 					if ( val > bestVal )
 					{
 						bestVal = val;
@@ -248,7 +262,7 @@ class Board
 		if ( depth == maxdepth )
 			return bestMove;
 		else if ( end )
-			return points + endscore( count_remaining( board ) );
+			return points + endscore( count_remaining() );
 		else
 			return bestVal;
 	}

@@ -12,7 +12,7 @@ void main()
 
 	// Solve board
 	StopWatch sw;
-	int move = board.solve( 0, 1, 1, sw );
+	int move = board.solve( 0, 1, 1, sw, TIMELIMIT );
 	int temp = move;
 	int[] region;
 	int points;
@@ -34,7 +34,7 @@ void main()
 		for ( int depth = 0; sw.peek().seconds < TIMELIMIT; depth++ )
 		{
 			move = temp;
-			temp = board.solve( 0, depth, depth, sw );
+			temp = board.solve( 0, depth, depth, sw, TIMELIMIT );
 			if ( sw.peek().seconds > TIMELIMIT )
 				writeln( depth );
 		}
