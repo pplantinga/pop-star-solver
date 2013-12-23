@@ -13,6 +13,7 @@ class Board
 	immutable BOARD_HEIGHT = 10;
 	immutable BOARD_WIDTH = 12;
 	char[BOARD_WIDTH][BOARD_HEIGHT] my_board;
+	int remaining = BOARD_WIDTH * BOARD_HEIGHT;
 
 	this( string file )
 	{
@@ -27,6 +28,7 @@ class Board
 	this( Board board )
 	{
 		my_board = board.my_board.dup;
+		remaining = board.remaining;
 	}
 
 	// Pretty print
@@ -73,7 +75,9 @@ class Board
 	// Find_region function finds a chunk of blocks
 	public void find_region( ref int[] region, int here )
 	{
-		if ( my_board[here / 100][here % 100] == ' ' )
+		int x = here / 100;
+		int y = here % 100;
+		if ( my_board[x][y] == ' ' )
 			return;
 
 		// Append this square to the region
@@ -84,7 +88,7 @@ class Board
 		foreach ( square; surrounding )
 		{
 			// If we're the same and not found already
-			if ( my_board[square / 100][square % 100] == my_board[here / 100][here % 100]
+			if ( my_board[square / 100][square % 100] == my_board[x][y]
 					&& !find( region, square) )
 				find_region( region, square );
 		}
@@ -95,6 +99,8 @@ class Board
 	{
 		foreach ( block; region )
 			my_board[block / 100][block % 100] = ' ';
+
+		remaining -= region.length;
 	}
 
 	// Gravity function pulls blocks down
@@ -162,17 +168,6 @@ class Board
 		return score < 0 ? 0 : score;
 	}
 
-	// Count remaining squares at end
-	int count_remaining()
-	{
-		int count = 0;
-		foreach ( row; my_board )
-			foreach ( square; row )
-				if ( square != ' ' )
-					count++;
-		return count;
-	}
-
 	// Count blastable squares
 	public int blastable()
 	{
@@ -180,12 +175,12 @@ class Board
 		int[] surrounding;
 
 		// Iterate over board
-		for ( int i = 0; i < BOARD_HEIGHT; i++ )
+		for ( int j = 0; j < BOARD_WIDTH; j++ )
 		{
-			for ( int j = 0; j < BOARD_WIDTH; j++ )
+			for ( int i = BOARD_HEIGHT - 1; i > 0; i-- )
 			{
 				if ( my_board[i][j] == ' ' )
-					continue;
+					break;
 				
 				surrounding = find_surrounding( i * 100 + j );
 
@@ -262,7 +257,7 @@ class Board
 		if ( depth == maxdepth )
 			return bestMove;
 		else if ( end )
-			return points + endscore( count_remaining() );
+			return points + endscore( remaining );
 		else
 			return bestVal;
 	}

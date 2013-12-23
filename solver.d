@@ -40,6 +40,6 @@ void main()
 		}
 	}
 
-	points += board.endscore( board.count_remaining() );
+	points += board.endscore( board.remaining );
 	writeln( "You get ", points, " points!" );
 }
