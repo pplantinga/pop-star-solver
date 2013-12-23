@@ -36,7 +36,7 @@ void main()
 		{
 			move = temp;
 			temp = board.solve( 0, depth, depth, sw, TIMELIMIT );
-			if ( sw.peek().seconds > TIMELIMIT )
+			if ( sw.peek().seconds >= TIMELIMIT )
 				writeln( depth );
 		}
 	}
