@@ -16,6 +16,7 @@ void main()
 	int temp = move;
 	int[] region;
 	int points;
+	bool[board.BOARD_WIDTH][board.BOARD_HEIGHT] already;
 	while ( move != -1 )
 	{
 		//writefln( "x is %s and y is %s", move / 100, move % 100 );
@@ -24,7 +25,7 @@ void main()
 		region = null;
 		board.find_region( region, move );
 		points += board.score( region.length );
-		board.remove( region );
+		board.remove( region, already );
 		board.print_board();
 		board.gravity();
 		board.collapse();

@@ -95,10 +95,13 @@ class Board
 	}
 
 	// removes a region from the board
-	public void remove( int[] region )
+	public void remove( int[] region, ref bool[BOARD_WIDTH][BOARD_HEIGHT] already )
 	{
 		foreach ( block; region )
+		{
 			my_board[block / 100][block % 100] = ' ';
+			already[block / 100][block % 100] = true;
+		}
 
 		remaining -= region.length;
 	}
@@ -212,7 +215,7 @@ class Board
 		int bestMove = -1;
 		int square = 0;
 		bool end = true;
-		int[] already;
+		bool[BOARD_WIDTH][BOARD_HEIGHT] already;
 
 		// Try every move
 		for ( int i = 0; i < BOARD_HEIGHT; i++ )
@@ -221,7 +224,7 @@ class Board
 			{
 				square = 100 * i + j;
 
-				if ( my_board[i][j] == ' ' || find( already, square ) )
+				if ( my_board[i][j] == ' ' || already[i][j] )
 					continue;
 
 				region = null;
@@ -230,10 +233,8 @@ class Board
 				// If it's a legal move
 				if ( region.length > 1 )
 				{
-					already ~= region;
-
 					testboard = new Board( this );
-					testboard.remove( region );
+					testboard.remove( region, already );
 					testboard.gravity();
 					testboard.collapse();
 
