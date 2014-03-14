@@ -3,15 +3,15 @@ import std.stdio;
 
 class Board
 {
-	immutable MIN_BLOCKS = 2;
-	immutable MIN_BLOCKS_SCORE = 20;
-	immutable SCORE_INCREASE_START = 25;
-	immutable SCORE_INCREASE_INCREASE = 10;
-	immutable END_CLEAR_SCORE = 2000;
-	immutable END_DECREASE_START = 20;
-	immutable END_DECREASE_INCREASE = 40;
-	immutable BOARD_HEIGHT = 10;
-	immutable BOARD_WIDTH = 12;
+	static immutable MIN_BLOCKS = 2;
+	static immutable MIN_BLOCKS_SCORE = 20;
+	static immutable SCORE_INCREASE_START = 25;
+	static immutable SCORE_INCREASE_INCREASE = 10;
+	static immutable END_CLEAR_SCORE = 2000;
+	static immutable END_DECREASE_START = 20;
+	static immutable END_DECREASE_INCREASE = 40;
+	static immutable BOARD_HEIGHT = 10;
+	static immutable BOARD_WIDTH = 12;
 	char[BOARD_WIDTH][BOARD_HEIGHT] my_board;
 	int remaining = BOARD_WIDTH * BOARD_HEIGHT;
 
@@ -27,7 +27,8 @@ class Board
 
 	this( Board board )
 	{
-		my_board = board.my_board.dup;
+		foreach ( i, row; board.my_board )
+			my_board[i] = row.dup;
 		remaining = board.remaining;
 	}
 

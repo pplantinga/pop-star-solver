@@ -1,0 +1,9 @@
+{
+	"name": "pop-star-solver",
+	"targetType": "executable",
+	"description": "This program finds a good move in the game 'pop star'.",
+	"copyright": "Copyright © 2014, Peter Massey-Plantinga",
+	"authors": ["Peter Massey-Plantinga"],
+	"dependencies": {
+	}
+}

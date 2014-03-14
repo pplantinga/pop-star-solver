@@ -2,10 +2,16 @@ import board;
 import std.stdio;
 import std.datetime;
 
-void main()
+void main( string[] args )
 {
+	if ( args.length < 2 )
+	{
+		writeln( "Usage: ./pop-star-solver {pop-star-file.txt}" );
+		return;
+	}
+
 	immutable TIMELIMIT = 5;
-	Board board = new Board("test.txt");
+	Board board = new Board( args[1] );
 
 	// See initial position
 	board.print_board();
