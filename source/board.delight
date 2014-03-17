@@ -1,0 +1,222 @@
+import std.datetime
+import std.stdio
+
+class Board:
+	MIN_BLOCKS = 2
+	MIN_BLOCKS_SCORE = 20
+	SCORE_INCREASE_START = 25
+	SCORE_INCREASE_INCREASE = 10
+	END_CLEAR_SCORE = 2000
+	END_DECREASE_START = 20
+	END_DECREASE_INCREASE = 40
+	BOARD_HEIGHT = 10
+	BOARD_WIDTH = 12
+	char[BOARD_WIDTH, BOARD_HEIGHT] my_board
+	int remaining = BOARD_WIDTH * BOARD_HEIGHT
+
+	this(string file):
+		auto f = new File(file, "r")
+		int i = 0
+		for row in f.byLine():
+			my_board[i] = row
+			i += 1
+
+	this(Board board):
+		for i, row in board.my_board:
+			my_board[i] = row.dup
+		remaining = board.remaining
+
+	# Pretty print
+	method print_board():
+		for row in my_board:
+			writeln(row)
+		writeln(' ')
+
+	method is_on_board(int pos, bool dimension -> bool):
+		if dimension:
+			return pos not less than 0 and pos less than BOARD_WIDTH
+		else:
+			return pos not less than 0 and pos less than BOARD_HEIGHT
+
+	# Find legal squares around a spot
+	method find_surrounding(int here -> int[]):
+		int[] surrounding = [here - 1, here - 100, here + 1, here + 100]
+		int[] legal
+
+		# Iterate over surrounding squares
+		for square in surrounding:
+
+			# Check if it is on the board
+			if is_on_board(square / 100, FALSE)	and is_on_board(square % 100, TRUE):
+				legal ~= square
+
+		return legal
+
+	method find(int[] haystack, int needle -> bool):
+		for straw in haystack:
+			if straw equal to needle:
+				return TRUE
+		return FALSE
+
+	# Find_region method finds a chunk of blocks
+	method find_region(ref int[] region, int here -> void):
+		int x = here / 100
+		int y = here % 100
+		if my_board[x, y] equal to ' ':
+			return
+
+		# Append this square to the region
+		region ~= [here]
+
+		# Iterate over surrounding squares
+		int[] surrounding = find_surrounding(here)
+		for square in surrounding:
+
+			# If we're the same and not found already
+			if (my_board[square / 100, square % 100] equal to my_board[x, y]
+				and not find(region, square)
+			):
+				find_region(region, square)
+
+	# removes a region from the board
+	method remove(int[] region, ref bool[BOARD_WIDTH, BOARD_HEIGHT] already):
+
+		for block in region:
+			my_board[block / 100, block % 100] = ' '
+			already[block / 100, block % 100] = TRUE
+
+		remaining -= region.length
+
+	# Gravity method pulls blocks down
+	method gravity():
+
+		# j and i are reversed to indicate iterating over columns
+		for j in 0 .. BOARD_WIDTH:
+			for i in 1 .. BOARD_HEIGHT:
+				if my_board[i, j] equal to ' ':
+					for k in 0 .. i:
+						k = i - k
+						my_board[k, j] = my_board[k - 1, j]
+					my_board[0, j] = ' '
+
+	# Remove empty columns
+	method collapse():
+		int count = 0
+		char[] slice
+		for i in 0 .. BOARD_WIDTH:
+			if my_board[$-1, i] equal to ' ':
+				count += 1
+
+			else if count not equal to 0:
+
+				# Mind the gap
+				for j in 0 .. BOARD_HEIGHT:
+					for k in i - count .. BOARD_WIDTH:
+						if k less than BOARD_WIDTH - count:
+							my_board[j, k] = my_board[j, k + count]
+						else:
+							my_board[j, k] = ' '
+
+				i -= count
+				count = 0
+
+	# Score method scores one blast
+	method score(int count -> int):
+
+		int n = count - MIN_BLOCKS
+		return ( MIN_BLOCKS_SCORE + SCORE_INCREASE_START * n
+			+ SCORE_INCREASE_INCREASE * n * (n - 1) / 2
+		)
+
+	# Score method that scores blocks left over
+	method endscore(int count -> int):
+
+		int score = ( END_CLEAR_SCORE - END_DECREASE_START * count
+			- END_DECREASE_INCREASE * count * (count - 1) / 2
+		)
+		if score less than 0:
+			return 0
+		else:
+			return score
+
+	# Count blastable squares
+	method blastable(-> int):
+
+		int count = 0
+		int[] surrounding
+
+		# Iterate over board columns, then rows
+		for j in 0 .. BOARD_WIDTH:
+			for i in 0 .. BOARD_HEIGHT - 1:
+				# Reverse direction
+				i = BOARD_HEIGHT - i - 1
+				if my_board[i, j] equal to ' ':
+					break
+
+				surrounding = find_surrounding(i * 100 + j)
+
+				# Iterate over surrounding squares
+				for square in surrounding:
+
+					# If we have at least one neighbor that's the same
+					if my_board[square / 100, square % 100] equal to my_board[i, j]:
+
+						count += 1
+						break
+
+		return count
+
+	# Solve method finds best moves
+	method solve(int points, depth, maxdepth, limit, StopWatch sw -> int):
+
+		if depth equal to 0 or sw.peek().seconds more than limit:
+			return points
+
+		Board testboard
+		int[] region
+		int val = 0
+		int bestVal = -100
+		int bestMove = -1
+		int square = 0
+		bool end = TRUE
+		bool[BOARD_WIDTH, BOARD_HEIGHT] already
+
+		# Try every move
+		for i in 0 .. BOARD_HEIGHT:
+			for j in 0 .. BOARD_WIDTH:
+				square = 100 * i + j
+
+				if my_board[i, j] equal to ' ' or already[i, j]:
+					continue
+
+				region = NULL
+				find_region(region, square)
+
+				# If it's a legal move
+				if region.length more than 1:
+
+					testboard = new Board(this)
+					testboard.remove(region, already)
+					testboard.gravity()
+					testboard.collapse()
+
+					# Using actual scoring leads to short-sighted strategies
+					#points += score(region.length)
+					points += 10 * testboard.blastable() + testboard.score(region.length)
+
+					end = FALSE
+
+					# Try subsequent moves
+					val = testboard.solve(points, depth - 1, maxdepth, limit, sw)
+					if val more than bestVal:
+
+						bestVal = val
+						bestMove = region[0]
+
+		if depth equal to maxdepth:
+			return bestMove
+		else if end:
+			return points + endscore(remaining)
+		else:
+			return bestVal
+

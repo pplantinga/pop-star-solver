@@ -15,90 +15,113 @@ class Board
 	char[BOARD_WIDTH][BOARD_HEIGHT] my_board;
 	int remaining = BOARD_WIDTH * BOARD_HEIGHT;
 
-	this( string file )
+	this(string file)
 	{
-		auto f = File( file, "r" );
+		auto f = new File(file, "r");
 		int i = 0;
-		foreach ( row; f.byLine() )
+		foreach (row; f.byLine())
 		{
-			my_board[i++] = row;
+			my_board[i] = row;
+			i += 1;
 		}
 	}
 
-	this( Board board )
+	this(Board board)
 	{
-		foreach ( i, row; board.my_board )
+		foreach (i, row; board.my_board)
+		{
 			my_board[i] = row.dup;
+		}
 		remaining = board.remaining;
 	}
 
 	// Pretty print
-	public void print_board()
+	auto print_board()
 	{
-		foreach ( row; my_board )
-			writeln( row );
-		writeln( ' ' );
-	}
-
-	bool is_on_board( int pos, bool dimension )
-	{
-		if ( dimension )
-			return pos >= 0 && pos < BOARD_WIDTH;
-		else
-			return pos >= 0 && pos < BOARD_HEIGHT;
-	}
-	
-	// Find legal squares around a spot
-	int[] find_surrounding( int here )
-	{
-		int[] surrounding = [ here - 1, here - 100, here + 1, here + 100 ];
-		int[] legal;
-
-		// Iterate over surrounding squares
-		foreach ( square; surrounding )
+		foreach (row; my_board)
 		{
-			// Check if it is on the board
-			if ( is_on_board( square / 100, false )
-					&& is_on_board( square % 100, true ) )
-				legal ~= square;
+			writeln(row);
 		}
+		writeln(' ');
+	}
+
+	bool is_on_board(int pos, bool dimension)
+	{
+		if (dimension)
+		{
+			return pos >= 0 && pos < BOARD_WIDTH;
+		}
+		else
+		{
+			return pos >= 0 && pos < BOARD_HEIGHT;
+		}
+	}
+
+	// Find legal squares around a spot
+	int[] find_surrounding(int here)
+	{
+		int[] surrounding = [here - 1, here - 100, here + 1, here + 100];
+		int[] legal;
+		
+		// Iterate over surrounding squares
+		foreach (square; surrounding)
+		{
+
+			// Check if it is on the board
+			if (is_on_board(square / 100, false) && is_on_board(square % 100, true))
+			{
+				legal ~= square;
+			}
+		}
+
 		return legal;
 	}
 
-	bool find( int[] haystack, int needle )
+	bool find(int[] haystack, int needle)
 	{
-		foreach ( straw; haystack )
-			if ( straw == needle )
+		foreach (straw; haystack)
+		{
+			if (straw == needle)
+			{
 				return true;
+			}
+		}
 		return false;
 	}
 
-	// Find_region function finds a chunk of blocks
-	public void find_region( ref int[] region, int here )
+	// Find_region method finds a chunk of blocks
+	void find_region(ref int[] region, int here)
 	{
 		int x = here / 100;
 		int y = here % 100;
-		if ( my_board[x][y] == ' ' )
+		if (my_board[x][y] == ' ')
+		{
 			return;
+		}
 
 		// Append this square to the region
 		region ~= [here];
 
 		// Iterate over surrounding squares
-		int[] surrounding = find_surrounding( here );
-		foreach ( square; surrounding )
+		int[] surrounding = find_surrounding(here);
+		foreach (square; surrounding)
 		{
+
 			// If we're the same and not found already
-			if ( my_board[square / 100][square % 100] == my_board[x][y]
-					&& !find( region, square) )
-				find_region( region, square );
+			if ((my_board[square / 100][square % 100] == my_board[x][y]
+			 && !find(region, square)
+			))
+			{
+				find_region(region, square);
+			}
 		}
 	}
 
 	// removes a region from the board
-	public void remove( int[] region, ref bool[BOARD_WIDTH][BOARD_HEIGHT] already )
+	auto remove(int[] region, ref bool[BOARD_WIDTH][BOARD_HEIGHT] already)
 	{
-		foreach ( block; region )
+
+		foreach (block; region)
 		{
 			my_board[block / 100][block % 100] = ' ';
 			already[block / 100][block % 100] = true;
@@ -107,19 +130,22 @@ class Board
 		remaining -= region.length;
 	}
 
-	// Gravity function pulls blocks down
-	public void gravity()
+	// Gravity method pulls blocks down
+	auto gravity()
 	{
+
 		// j and i are reversed to indicate iterating over columns
-		for ( int j = 0; j < BOARD_WIDTH; j++ )
+		foreach (j; 0 .. BOARD_WIDTH)
 		{
-			// and then rows, ignoring the top row
-			for ( int i = 1; i < BOARD_HEIGHT; i++ )
+			foreach (i; 1 .. BOARD_HEIGHT)
 			{
-				if ( my_board[i][j] == ' ' )
+				if (my_board[i][j] == ' ')
 				{
-					for ( int k = i; k > 0; k-- )
-						my_board[k][j] = my_board[k-1][j];
+					foreach (k; 0 .. i)
+					{
+						k = i - k;
+						my_board[k][j] = my_board[k - 1][j];
+					}
 					my_board[0][j] = ' ';
 				}
 			}
@@ -127,87 +153,116 @@ class Board
 	}
 
 	// Remove empty columns
-	public void collapse()
+	auto collapse()
 	{
 		int count = 0;
 		char[] slice;
-		for ( int i = 0; i < BOARD_WIDTH; i++ )
+		foreach (i; 0 .. BOARD_WIDTH)
 		{
-			if ( my_board[$-1][i] == ' ' )
+			if (my_board[$ - 1][i] == ' ')
 			{
-				count++;
+				count += 1;
 			}
-			else if ( count != 0 )
+
+			else if (count != 0)
 			{
+
 				// Mind the gap
-				for ( int j = 0; j < BOARD_HEIGHT; j++ )
+				foreach (j; 0 .. BOARD_HEIGHT)
 				{
-					for ( int k = i - count; k < BOARD_WIDTH; k++ )
+					foreach (k; i - count .. BOARD_WIDTH)
 					{
-						if ( k < BOARD_WIDTH - count )
+						if (k < BOARD_WIDTH - count)
+						{
 							my_board[j][k] = my_board[j][k + count];
+						}
 						else
+						{
 							my_board[j][k] = ' ';
+						}
 					}
 				}
+
 				i -= count;
 				count = 0;
 			}
 		}
 	}
 
-	// Score function scores one blast
-	pure int score( int count )
+	// Score method scores one blast
+	int score(int count)
 	{
-		int n = count - MIN_BLOCKS;
-		return MIN_BLOCKS_SCORE + SCORE_INCREASE_START * n
-			+ SCORE_INCREASE_INCREASE * n * (n - 1) / 2;
-	}			
 
-	// Score function that scores blocks left over
-	pure int endscore( int count )
+		int n = count - MIN_BLOCKS;
+		return (MIN_BLOCKS_SCORE + SCORE_INCREASE_START * n
+		 + SCORE_INCREASE_INCREASE * n * (n - 1) / 2
+		);
+	}
+
+	// Score method that scores blocks left over
+	int endscore(int count)
 	{
-		int score = END_CLEAR_SCORE - END_DECREASE_START * count
-			- END_DECREASE_INCREASE * count * ( count - 1 ) / 2;
-		return score < 0 ? 0 : score;
+
+		int score = (END_CLEAR_SCORE - END_DECREASE_START * count
+		 - END_DECREASE_INCREASE * count * (count - 1) / 2
+		);
+		if (score < 0)
+		{
+			return 0;
+		}
+		else
+		{
+			return score;
+		}
 	}
 
 	// Count blastable squares
-	public int blastable()
+	int blastable()
 	{
+
 		int count = 0;
 		int[] surrounding;
-
-		// Iterate over board
-		for ( int j = 0; j < BOARD_WIDTH; j++ )
+		
+		// Iterate over board columns, then rows
+		foreach (j; 0 .. BOARD_WIDTH)
 		{
-			for ( int i = BOARD_HEIGHT - 1; i > 0; i-- )
+			foreach (i; 0 .. BOARD_HEIGHT - 1)
 			{
-				if ( my_board[i][j] == ' ' )
+				// Reverse direction
+				i = BOARD_HEIGHT - i - 1;
+				if (my_board[i][j] == ' ')
+				{
 					break;
-				
-				surrounding = find_surrounding( i * 100 + j );
+				}
+
+				surrounding = find_surrounding(i * 100 + j);
 
 				// Iterate over surrounding squares
-				foreach ( square; surrounding )
+				foreach (square; surrounding)
 				{
+
 					// If we have at least one neighbor that's the same
-					if ( my_board[square / 100][square % 100] == my_board[i][j] )
+					if (my_board[square / 100][square % 100] == my_board[i][j])
 					{
-						count++;
+
+						count += 1;
 						break;
 					}
 				}
 			}
 		}
+
 		return count;
 	}
 
-	// Solve function finds best moves
-	int solve( int points, int depth, int maxdepth, StopWatch sw, int limit )
+	// Solve method finds best moves
+	int solve(int points, int depth, int maxdepth, int limit, StopWatch sw)
 	{
-		if ( depth == 0 || sw.peek().seconds > limit )
+
+		if (depth == 0 || sw.peek().seconds > limit)
+		{
 			return points;
+		}
 
 		Board testboard;
 		int[] region;
@@ -217,38 +272,42 @@ class Board
 		int square = 0;
 		bool end = true;
 		bool[BOARD_WIDTH][BOARD_HEIGHT] already;
-
+		
 		// Try every move
-		for ( int i = 0; i < BOARD_HEIGHT; i++ )
+		foreach (i; 0 .. BOARD_HEIGHT)
 		{
-			for ( int j = 0; j < BOARD_WIDTH; j++ )
+			foreach (j; 0 .. BOARD_WIDTH)
 			{
 				square = 100 * i + j;
 
-				if ( my_board[i][j] == ' ' || already[i][j] )
+				if (my_board[i][j] == ' ' || already[i][j])
+				{
 					continue;
+				}
 
 				region = null;
-				find_region( region, square );
+				find_region(region, square);
 				
 				// If it's a legal move
-				if ( region.length > 1 )
+				if (region.length > 1)
 				{
-					testboard = new Board( this );
-					testboard.remove( region, already );
+
+					testboard = new Board(this);
+					testboard.remove(region, already);
 					testboard.gravity();
 					testboard.collapse();
-
-					// Using actual scoring leads to short-sighted strategies
-					//points += score( region.length );
-					points += 10 * testboard.blastable() + testboard.score( region.length );
 					
+					// Using actual scoring leads to short-sighted strategies
+					 // points += score(region.length)
+					points += 10 * testboard.blastable() + testboard.score(region.length);
+
 					end = false;
 
 					// Try subsequent moves
-					val = testboard.solve( points, depth - 1, maxdepth, sw, limit );
-					if ( val > bestVal )
+					val = testboard.solve(points, depth - 1, maxdepth, limit, sw);
+					if (val > bestVal)
 					{
+
 						bestVal = val;
 						bestMove = region[0];
 					}
@@ -256,11 +315,18 @@ class Board
 			}
 		}
 
-		if ( depth == maxdepth )
+		if (depth == maxdepth)
+		{
 			return bestMove;
-		else if ( end )
-			return points + endscore( remaining );
+		}
+		else if (end)
+		{
+			return points + endscore(remaining);
+		}
 		else
+		{
 			return bestVal;
+		}
 	}
 }
+
