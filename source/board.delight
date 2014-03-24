@@ -94,8 +94,7 @@ class Board:
 		for j in 0 .. BOARD_WIDTH:
 			for i in 1 .. BOARD_HEIGHT:
 				if my_board[i, j] equal to ' ':
-					for k in 0 .. i:
-						k = i - k
+					for k in i .. 0 by -1:
 						my_board[k, j] = my_board[k - 1, j]
 					my_board[0, j] = ' '
 
@@ -147,9 +146,7 @@ class Board:
 
 		# Iterate over board columns, then rows
 		for j in 0 .. BOARD_WIDTH:
-			for i in 0 .. BOARD_HEIGHT - 1:
-				# Reverse direction
-				i = BOARD_HEIGHT - i - 1
+			for i in BOARD_HEIGHT - 1 .. 0 by -1:
 				if my_board[i, j] equal to ' ':
 					break
 

@@ -1,3 +1,4 @@
+import std.range : iota;
 import std.datetime;
 import std.stdio;
 
@@ -141,9 +142,8 @@ class Board
 			{
 				if (my_board[i][j] == ' ')
 				{
-					foreach (k; 0 .. i)
+					foreach (k; iota(i, 0, -1))
 					{
-						k = i - k;
 						my_board[k][j] = my_board[k - 1][j];
 					}
 					my_board[0][j] = ' ';
@@ -226,10 +226,8 @@ class Board
 		// Iterate over board columns, then rows
 		foreach (j; 0 .. BOARD_WIDTH)
 		{
-			foreach (i; 0 .. BOARD_HEIGHT - 1)
+			foreach (i; iota(BOARD_HEIGHT - 1, 0, -1))
 			{
-				// Reverse direction
-				i = BOARD_HEIGHT - i - 1;
 				if (my_board[i][j] == ' ')
 				{
 					break;
