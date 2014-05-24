@@ -190,10 +190,10 @@ class Board
 	}
 
 	// Score method scores one blast
-	int score(int count)
+	auto score(T)(T count)
 	{
 
-		int n = count - MIN_BLOCKS;
+		T n = count - MIN_BLOCKS;
 		return (MIN_BLOCKS_SCORE + SCORE_INCREASE_START * n
 		 + SCORE_INCREASE_INCREASE * n * (n - 1) / 2
 		);
